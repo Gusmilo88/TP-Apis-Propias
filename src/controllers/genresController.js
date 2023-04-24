@@ -1,21 +1,67 @@
-const db = require('../database/models');
+const db = require("../database/models");
 const sequelize = db.sequelize;
+require("dotenv").config();
 
 
-const genresController = {
-    'list': (req, res) => {
-        db.Genre.findAll()
-            .then(genres => {
-                res.render('genresList.ejs', {genres})
+module.exports = {
+    list: async(req, res) => {
+
+        try {
+            
+
+            return res.status(200).json({
+                ok : true,
+                data : genres,
+                meta : {
+                    status: 200,
+                    total : genres.lenght, // Siempre usar la misma estructura en la misma api
+                    url : "/api/genres"
+                },
             })
+
+        } catch (error) {
+            console.log(error); //SIEMPRE muestro por consola el error
+            return res.status(500).json({
+                msg : error.message //Es buena practica mostrar el mensaje de error para que salga en el front
+            })
+        }
+
     },
-    'detail': (req, res) => {
-        db.Genre.findByPk(req.params.id)
-            .then(genre => {
-                res.render('genresDetail.ejs', {genre});
-            });
-    }
+    detail: async (req, res) => {
 
-}
+        try {
 
-module.exports = genresController;
+            const {id} = req.params;
+
+            const genre = await db.Genre.findByPk(id);
+
+            return res.status(200).json({
+                ok : true,
+                data : genre,
+                meta : {
+                    status: 200,
+                    total : 1,  // Siempre usar la misma estructura en la misma api
+                    url : `/api/genres/${id}`
+                },
+            })
+
+        } catch (error) {
+            console.log(error); //SIEMPRE muestro por consola el error
+            return res.status(500).json({
+                msg : error.message //Es buena practica mostrar el mensaje de error para que salga en el front
+            })
+        }
+    },
+
+    store : async (req, res) => {
+
+    },
+
+    update : async (req, res) => {
+
+    },
+
+    destroy : async (req, res) => {
+
+    },
+};
