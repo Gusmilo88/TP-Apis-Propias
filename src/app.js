@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const methodOverride = require('method-override');
+const createError = require("http-errors")
 const app = express();
 require("dotenv").config()
 
@@ -12,13 +13,15 @@ app
 
 app
     .use(express.static(path.resolve(__dirname, '../public')))
+    .use(express.json())
     .use(express.urlencoded({ extended: false }))
     .use(methodOverride('_method'))
 
 
     // routes
 
-const {actorsRouter, genresRouter, moviesRouter} = require("./v1/routes")
+const {actorsRouter, genresRouter, moviesRouter} = require("./v1/routes");
+const createResponseError = require('./helpers/createResponseError');
 
 app 
     .use("/api/v1/actors", actorsRouter)
@@ -26,6 +29,16 @@ app
     .use("/api/v1/movies", moviesRouter)
 
 
+
+    // catch 404 and forward to error handler
+app.use(function(req, res, next) {
+    next(createError(404, "No encontrado"));
+  });
+  
+  // error handler
+  app.use(function(error, req, res, next) {
+    return createResponseError(res, error)
+  });
 
 
 //Activando el servidor desde express

@@ -1,5 +1,6 @@
-const db = require("../database/models");
-const sequelize = db.sequelize;
+const {validationResult} = require("express-validator")
+const createResponseError = require("../helpers/createResponseError");
+const { getAllGenres, getOneGenre, createGenre } = require("../services/genresServices");
 require("dotenv").config();
 
 
@@ -7,7 +8,7 @@ module.exports = {
     list: async(req, res) => {
 
         try {
-            
+            const genres = await getAllGenres()
 
             return res.status(200).json({
                 ok : true,
@@ -18,12 +19,8 @@ module.exports = {
                     url : "/api/genres"
                 },
             })
-
         } catch (error) {
-            console.log(error); //SIEMPRE muestro por consola el error
-            return res.status(500).json({
-                msg : error.message //Es buena practica mostrar el mensaje de error para que salga en el front
-            })
+            return createResponseError(res, error)
         }
 
     },
@@ -31,9 +28,11 @@ module.exports = {
 
         try {
 
-            const {id} = req.params;
+            const {
+                params : {id}
+            } = req;
 
-            const genre = await db.Genre.findByPk(id);
+            const genre = await getOneGenre(id)
 
             return res.status(200).json({
                 ok : true,
@@ -46,15 +45,36 @@ module.exports = {
             })
 
         } catch (error) {
-            console.log(error); //SIEMPRE muestro por consola el error
-            return res.status(500).json({
-                msg : error.message //Es buena practica mostrar el mensaje de error para que salga en el front
-            })
+            createResponseError(res, error)
         }
     },
 
     store : async (req, res) => {
 
+        try {
+            
+            const errors =validationResult(req);
+
+            if(!errors.isEmpty()) throw {
+                status : 400,
+                message : errors.mapped()
+            }
+
+            const newGenre = await createGenre(req.body);
+
+            return res.status(200).json({
+                ok : true,
+                data : newGenre,
+                meta : {
+                    status: 200,
+                    total : 1,  // Siempre usar la misma estructura en la misma api
+                    url : `/api/genres/${newGenre.id}`
+                },
+            })
+
+        } catch (error) {
+            return createResponseError(res, error)
+        }
     },
 
     update : async (req, res) => {
